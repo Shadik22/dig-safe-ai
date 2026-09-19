@@ -129,7 +129,7 @@ function SafetyMapPage() {
 
         <div className="mt-5 grid gap-5 xl:grid-cols-[1.6fr_1fr]">
           {/* Map */}
-          <section className="relative overflow-hidden rounded-2xl border border-border bg-surface">
+          <section className="relative self-start overflow-hidden rounded-2xl border border-border bg-surface">
             <div className="aspect-[1000/680] w-full">
               <SafetyMap
                 site={site}
@@ -150,7 +150,7 @@ function SafetyMapPage() {
             </div>
 
             {/* Legend */}
-            <div className="pointer-events-none absolute top-4 left-4 rounded-xl border border-border bg-background/85 p-3 backdrop-blur">
+            <div className="pointer-events-none absolute top-4 right-4 rounded-xl border border-border bg-background/85 p-3 backdrop-blur">
               <p className="mb-2 inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
                 <Layers size={12} /> Utility legend
               </p>
