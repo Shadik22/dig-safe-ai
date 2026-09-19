@@ -401,7 +401,7 @@ export const SITES: Site[] = [
   },
 ];
 
-export const getSite = (id: string) => SITES.find((s) => s.id === id) ?? SITES[0];
+export const getSite = (id: string): Site => SITES.find((s) => s.id === id) ?? (SITES[0] as Site);
 
 export const TOTAL_MAPPED_UTILITIES = 73; // surveyed records across the three demo sites
 
