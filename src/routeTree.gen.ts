@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as MapRouteImport } from './routes/map'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SitesRouteImport } from './routes/sites'
@@ -29,6 +30,11 @@ const AnalyticsRoute = AnalyticsRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MapRoute = MapRouteImport.update({
+  id: '/map',
+  path: '/map',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReportsRoute = ReportsRouteImport.update({
@@ -51,6 +57,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
   '/dashboard': typeof DashboardRoute
+  '/map': typeof MapRoute
   '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
   '/sites': typeof SitesRoute
@@ -59,6 +66,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
   '/dashboard': typeof DashboardRoute
+  '/map': typeof MapRoute
   '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
   '/sites': typeof SitesRoute
@@ -68,6 +76,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
   '/dashboard': typeof DashboardRoute
+  '/map': typeof MapRoute
   '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
   '/sites': typeof SitesRoute
@@ -75,14 +84,28 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/analytics' | '/dashboard' | '/reports' | '/settings' | '/sites'
+    | '/'
+    | '/analytics'
+    | '/dashboard'
+    | '/map'
+    | '/reports'
+    | '/settings'
+    | '/sites'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/analytics' | '/dashboard' | '/reports' | '/settings' | '/sites'
+  to:
+    | '/'
+    | '/analytics'
+    | '/dashboard'
+    | '/map'
+    | '/reports'
+    | '/settings'
+    | '/sites'
   id:
     | '__root__'
     | '/'
     | '/analytics'
     | '/dashboard'
+    | '/map'
     | '/reports'
     | '/settings'
     | '/sites'
@@ -92,6 +115,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AnalyticsRoute: typeof AnalyticsRoute
   DashboardRoute: typeof DashboardRoute
+  MapRoute: typeof MapRoute
   ReportsRoute: typeof ReportsRoute
   SettingsRoute: typeof SettingsRoute
   SitesRoute: typeof SitesRoute
@@ -118,6 +142,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/map': {
+      id: '/map'
+      path: '/map'
+      fullPath: '/map'
+      preLoaderRoute: typeof MapRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reports': {
@@ -148,6 +179,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnalyticsRoute: AnalyticsRoute,
   DashboardRoute: DashboardRoute,
+  MapRoute: MapRoute,
   ReportsRoute: ReportsRoute,
   SettingsRoute: SettingsRoute,
   SitesRoute: SitesRoute,
