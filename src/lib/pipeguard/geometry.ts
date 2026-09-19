@@ -5,16 +5,20 @@ export type Rect = { x: number; y: number; w: number; h: number };
 export const METRES_PER_UNIT = 0.1;
 export const toMetres = (units: number) => units * METRES_PER_UNIT;
 
+const at = (p: Pt[], i: number): Pt => {
+  const v = p[Math.max(0, Math.min(p.length - 1, i))];
+  return v ?? { x: 0, y: 0 };
+};
+
 /** Smooth Catmull-Rom path through anchor points, rendered as cubic beziers. */
 export function smoothPath(points: Pt[]): string {
   if (points.length < 2) return "";
-  const p = points;
-  let d = `M ${p[0].x} ${p[0].y}`;
-  for (let i = 0; i < p.length - 1; i++) {
-    const p0 = p[i - 1] ?? p[i];
-    const p1 = p[i];
-    const p2 = p[i + 1];
-    const p3 = p[i + 2] ?? p2;
+  let d = `M ${at(points, 0).x} ${at(points, 0).y}`;
+  for (let i = 0; i < points.length - 1; i++) {
+    const p0 = at(points, i - 1);
+    const p1 = at(points, i);
+    const p2 = at(points, i + 1);
+    const p3 = at(points, i + 2);
     const c1 = { x: p1.x + (p2.x - p0.x) / 6, y: p1.y + (p2.y - p0.y) / 6 };
     const c2 = { x: p2.x - (p3.x - p1.x) / 6, y: p2.y - (p3.y - p1.y) / 6 };
     d += ` C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${p2.x} ${p2.y}`;
@@ -26,12 +30,11 @@ export function smoothPath(points: Pt[]): string {
 export function samplePath(points: Pt[], perSegment = 24): Pt[] {
   if (points.length < 2) return [...points];
   const out: Pt[] = [];
-  const p = points;
-  for (let i = 0; i < p.length - 1; i++) {
-    const p0 = p[i - 1] ?? p[i];
-    const p1 = p[i];
-    const p2 = p[i + 1];
-    const p3 = p[i + 2] ?? p2;
+  for (let i = 0; i < points.length - 1; i++) {
+    const p0 = at(points, i - 1);
+    const p1 = at(points, i);
+    const p2 = at(points, i + 1);
+    const p3 = at(points, i + 2);
     for (let s = 0; s < perSegment; s++) {
       const t = s / perSegment;
       const t2 = t * t;
@@ -52,7 +55,7 @@ export function samplePath(points: Pt[], perSegment = 24): Pt[] {
       });
     }
   }
-  out.push(p[p.length - 1]);
+  out.push(at(points, points.length - 1));
   return out;
 }
 
@@ -66,19 +69,14 @@ function distPointSeg(p: Pt, a: Pt, b: Pt): number {
   return Math.hypot(p.x - cx, p.y - cy);
 }
 
-const inRect = (p: Pt, r: Rect) =>
-  p.x >= r.x && p.x <= r.x + r.w && p.y >= r.y && p.y <= r.y + r.h;
+const inRect = (p: Pt, r: Rect) => p.x >= r.x && p.x <= r.x + r.w && p.y >= r.y && p.y <= r.y + r.h;
 
 function segIntersect(a: Pt, b: Pt, c: Pt, d: Pt): boolean {
   const o = (p: Pt, q: Pt, r: Pt) => Math.sign((q.y - p.y) * (r.x - q.x) - (q.x - p.x) * (r.y - q.y));
-  const o1 = o(a, b, c);
-  const o2 = o(a, b, d);
-  const o3 = o(c, d, a);
-  const o4 = o(c, d, b);
-  return o1 !== o2 && o3 !== o4;
+  return o(a, b, c) !== o(a, b, d) && o(c, d, a) !== o(c, d, b);
 }
 
-function rectEdges(r: Rect): [Pt, Pt][] {
+function rectEdges(r: Rect): Array<[Pt, Pt]> {
   const tl = { x: r.x, y: r.y };
   const tr = { x: r.x + r.w, y: r.y };
   const br = { x: r.x + r.w, y: r.y + r.h };
@@ -94,19 +92,20 @@ function rectEdges(r: Rect): [Pt, Pt][] {
 /** Closest distance (map units) between a polyline and a rectangle. 0 if they overlap. */
 export function polylineRectDistance(poly: Pt[], rect: Rect): { distance: number; point: Pt } {
   let best = Infinity;
-  let bestPt: Pt = poly[0] ?? { x: rect.x, y: rect.y };
+  let bestPt: Pt = at(poly, 0);
+  const edges = rectEdges(rect);
 
   for (let i = 0; i < poly.length; i++) {
-    const p = poly[i];
+    const p = at(poly, i);
     if (inRect(p, rect)) return { distance: 0, point: p };
   }
   for (let i = 0; i < poly.length - 1; i++) {
-    const a = poly[i];
-    const b = poly[i + 1];
-    for (const [c, d] of rectEdges(rect)) {
-      if (segIntersect(a, b, c, d)) return { distance: 0, point: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 } };
-    }
-    for (const [c, d] of rectEdges(rect)) {
+    const a = at(poly, i);
+    const b = at(poly, i + 1);
+    for (const [c, d] of edges) {
+      if (segIntersect(a, b, c, d)) {
+        return { distance: 0, point: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 } };
+      }
       const cand = Math.min(
         distPointSeg(a, c, d),
         distPointSeg(b, c, d),
@@ -119,5 +118,5 @@ export function polylineRectDistance(poly: Pt[], rect: Rect): { distance: number
       }
     }
   }
-  return { distance: best, point: bestPt };
+  return { distance: Number.isFinite(best) ? best : 9999, point: bestPt };
 }
